@@ -2,40 +2,47 @@ import socket
 from threading import Thread
 import random
 
-server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-ip_address = '127.0.0.1'
-port = 8000
-
-server.bind((ip_address, port))
+server=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+IPAddress = "127.0.0.1"
+port=8001
+server.bind((IPAddress, port))
 server.listen()
+listOfClients=[]
+nicknames=[]
 
-list_of_clients = []
-nicknames = []
+print("Server is started!")
 
-questions = [
-     "What is the biggest megacity of India? \n a.Bengaluru\n b.Delhi\n c.Kolkata\n d.Mumbai",
+question={
+    "What is the biggest megacity of India? \n a.Bengaluru\n b.Delhi\n c.Kolkata\n d.Mumbai",
     "Who invented Crescograph? \n a.Einstein\n b.Satyendranath Bose\n c.Jagadish Chandra Bose\n d.Charles Darwin",
     "What is the largest National Highway of India? \n a.NH12\n b.NH36\n c.NH44\n d.NH64",
     "On whose birthday we celebrate National Youth Day? \n a.Netaji Subhash Chandra Bose\n b.Bhagat Singh\n c.Shivaji\n d.Swami Vivekananda"
-]
+    
+}
 
-answers = ["d","c","c","d"]
-
-print("Server has started...")
+answer={"d","c","c","d"}
 
 def get_random_question_answer(conn):
-    random_index = random.randint(0,len(questions) - 1)
-    random_question = questions[random_index]
-    random_answer = answers[random_index]
-    conn.send(random_question.encode('utf-8'))
-    return random_index, random_question, random_answer
+  random_index = random.randint(0,len(question)-1)
+  random_question = question[random_index]
+  random_answer=answer[random_index]
+  conn.send(random_question.encode("UTF-8"))
+  return random_index, random_question, random_answer 
 
 def remove_question(index):
-    questions.pop(index)
-    answers.pop(index)
+  question.pop(index)
+  answer.pop(index)
 
-def clientthread(conn, nickname):
+
+def remove(conn):
+  if conn in listOfClients:
+    listOfClients.remove(conn)
+
+def remove_nickname(nickname):
+  if nickname in nicknames:
+    nicknames.remove(nickname)
+
+def clientThread(conn, nickname):
     score = 0
     conn.send("Welcome to this quiz game!".encode('utf-8'))
     conn.send("You will receive a question. The answer to that question should be one of a, b, c or d!\n".encode('utf-8'))
@@ -61,20 +68,12 @@ def clientthread(conn, nickname):
             print(str(e))
             continue
 
-def remove(connection):
-    if connection in list_of_clients:
-        list_of_clients.remove(connection)
-
-def remove_nickname(nickname):
-    if nickname in nicknames:
-        nicknames.remove(nickname)
-
 while True:
-    conn, addr = server.accept()
-    conn.send('NICKNAME'.encode('utf-8'))
-    nickname = conn.recv(2048).decode('utf-8')
-    list_of_clients.append(conn)
+    conn, address = server.accept()
+    conn.send('NICKNAME'.encode("UTF-8"))
+    nickname = conn.recv(2048).decode("UTF-8")
+    listOfClients.append(conn)
     nicknames.append(nickname)
-    print (nickname + " connected!")
-    new_thread = Thread(target= clientthread,args=(conn,nickname))
-    new_thread.start()
+    print(nickname + "connected!")
+    newThread = Thread(target=clientThread, args=(conn, nickname))
+    newThread.start()
